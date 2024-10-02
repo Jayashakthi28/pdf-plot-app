@@ -1,7 +1,7 @@
 export default {
   expo: {
-    name: 'plot-app-maplibre-main',
-    slug: 'plot-app-maplibre-main',
+    name: 'Pdf Plot',
+    slug: 'pdf-plot',
     version: '1.0.0',
     orientation: 'portrait',
     icon: './assets/images/icon.png',
@@ -14,16 +14,15 @@ export default {
     },
     ios: {
       supportsTablet: true,
-      bundleIdentifier: 'com.jayashakthi28.plotmap',
+      bundleIdentifier: 'com.jsv.pdfplot',
       googleServicesFile: process.env.GOOGLE_SERVICE_INFO_PLIST,
-      googleServicesFile: './assets/GoogleService-Info.plist',
     },
     android: {
       adaptiveIcon: {
         foregroundImage: './assets/images/adaptive-icon.png',
         backgroundColor: '#ffffff',
       },
-      package: 'com.jayashakthi28.plotmap',
+      package: 'com.jsv.pdfplot',
       googleServicesFile: process.env.GOOGLE_SERVICE_JSON,
     },
     web: {
@@ -55,7 +54,7 @@ export default {
         origin: false,
       },
       eas: {
-        projectId: 'b16e6a46-77b2-4a1f-8071-b46797bb323d',
+        projectId: '01f582ff-ee74-4267-a07f-8d116a159bf9',
       },
     },
   },
