@@ -1,11 +1,11 @@
-import Maplibre from "@maplibre/maplibre-react-native";
-import React, { useEffect, useState, useCallback, useMemo } from "react";
-import { View, StyleSheet } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useLocalSearchParams } from "expo-router";
-import axios from "axios";
-import { IconButton, TouchableRipple, Text } from "react-native-paper";
-import ModalComponent from "@/components/ModalComponent";
+import Maplibre from '@maplibre/maplibre-react-native';
+import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
+import { View, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useLocalSearchParams } from 'expo-router';
+import axios from 'axios';
+import { IconButton, TouchableRipple, Text } from 'react-native-paper';
+import ModalComponent from '@/components/ModalComponent';
 
 export default function MapView() {
   const { map } = useLocalSearchParams();
@@ -17,10 +17,10 @@ export default function MapView() {
   const [currCoordinateIndex, setCurrCoordinateIndex] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
 
+  const mapRef = useRef(null);
+
   const getMapData = async () => {
-    let res = await axios.get(
-      `${process.env.EXPO_PUBLIC_BACKEND_URL}/map/${map}`
-    );
+    let res = await axios.get(`${process.env.EXPO_PUBLIC_BACKEND_URL}/map/${map}`);
     res = res.data;
     setMapData(res);
   };
@@ -32,6 +32,19 @@ export default function MapView() {
   useEffect(() => {
     getMapData();
   }, [map]);
+
+  const zoomUpdater = useCallback(isAdd => {
+    setZoomLevel(prevZoomLevel => {
+      let updatedZoomLevel = prevZoomLevel;
+
+      if (isAdd) {
+        updatedZoomLevel = prevZoomLevel >= 6 ? 6 : prevZoomLevel + 1;
+      } else {
+        updatedZoomLevel = prevZoomLevel <= 2 ? 2 : prevZoomLevel - 1;
+      }
+      return updatedZoomLevel;
+    });
+  }, []);
 
   useEffect(() => {
     if (!mapData) return;
@@ -46,20 +59,18 @@ export default function MapView() {
     () => ({
       version: 8,
       sources: {
-        "custom-tiles": {
-          type: "raster",
-          tiles: [
-            `${process.env.EXPO_PUBLIC_BACKEND_URL}/${mapData?.tileUrl}/{z}_{x}_{y}`,
-          ],
+        'custom-tiles': {
+          type: 'raster',
+          tiles: [`${process.env.EXPO_PUBLIC_BACKEND_URL}/${mapData?.tileUrl}/{z}_{x}_{y}`],
           tileSize: 256,
           maxzoom: 6,
         },
       },
       layers: [
         {
-          id: "custom-tile-layer",
-          type: "raster",
-          source: "custom-tiles",
+          id: 'custom-tile-layer',
+          type: 'raster',
+          source: 'custom-tiles',
           minzoom: 0,
           maxzoom: 6,
         },
@@ -68,7 +79,7 @@ export default function MapView() {
     [mapData]
   );
 
-  const updateCoordinateData = async (coordinateData) => {
+  const updateCoordinateData = async coordinateData => {
     setIsSaving(true);
     const res = await axios.patch(
       `${process.env.EXPO_PUBLIC_BACKEND_URL}/map/${map}/coordinate`,
@@ -113,18 +124,18 @@ export default function MapView() {
               setIsModalOpen(true);
             }}
             renderToHardwareTextureAndroid
-            rippleColor={markerData.isBooked ? "#FCE4EC" : "#E8F5E9"}
+            rippleColor={markerData.isBooked ? '#FCE4EC' : '#E8F5E9'}
           >
             <View
               style={{
                 padding: 8,
                 borderRadius: 100,
-                backgroundColor: markerData.isBooked ? "#FCE4EC" : "#E8F5E9",
+                backgroundColor: markerData.isBooked ? '#FCE4EC' : '#E8F5E9',
                 height: 30,
                 width: 30,
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
               }}
             >
               <Text adjustsFontSizeToFit>{markerData.plotNumber}</Text>
@@ -140,15 +151,18 @@ export default function MapView() {
       {mapData && (
         <Maplibre.MapView
           style={{
-            width: "100%",
-            height: "100%",
+            width: '100%',
+            height: '100%',
             flex: 1,
           }}
           attributionEnabled={false}
           styleJSON={JSON.stringify(styleSpec)}
+          compassEnabled={true}
+          ref={mapRef}
         >
           <Maplibre.Camera
             zoomLevel={zoomLevel}
+            animationDuration={250}
             maxZoomLevel={6}
             minZoomLevel={2}
             followUserLocation={false}
@@ -162,12 +176,16 @@ export default function MapView() {
         <IconButton
           mode="contained-tonal"
           icon={() => <Ionicons name="add" />}
-          onPress={() => setZoomLevel((prev) => (prev >= 6 ? 6 : prev + 1))}
+          onPress={() => {
+            zoomUpdater(true);
+          }}
         />
         <IconButton
           mode="contained-tonal"
           icon={() => <Ionicons name="remove" />}
-          onPress={() => setZoomLevel((prev) => (prev <= 2 ? 2 : prev - 1))}
+          onPress={() => {
+            zoomUpdater(false);
+          }}
         />
       </View>
       <ModalComponent
@@ -183,23 +201,23 @@ export default function MapView() {
 
 const styles = StyleSheet.create({
   mapContainer: {
-    width: "100%",
-    height: "100%",
+    width: '100%',
+    height: '100%',
     flex: 1,
   },
   markerContainer: {
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   navControls: {
-    position: "absolute",
+    position: 'absolute',
     bottom: 20,
     right: 20,
-    flexDirection: "column",
+    flexDirection: 'column',
   },
 });
